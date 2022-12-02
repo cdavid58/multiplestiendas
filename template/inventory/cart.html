@@ -1,0 +1,221 @@
+{% extends '../base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    @import url('//fonts.googleapis.com/css2?family=Montserrat:ital,wght@1,800&display=swap');
+
+    /* ======================== */
+    
+    .cargando{
+        width: 120px;
+        height: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin: 0 auto; 
+        z-index:99;
+    }
+    .texto-cargando{ 
+        padding-top:10px
+    }
+    .cargando span{
+        font-size: 20px;
+        text-transform: uppercase;
+    }
+    .pelotas {
+        width: 30px;
+        height: 30px;
+        background-color: #ffd333;
+        animation: salto .5s alternate
+        infinite;
+    border-radius: 50%  
+    }
+    .pelotas:nth-child(2) {
+        animation-delay: .18s;
+    }
+    .pelotas:nth-child(3) {
+        animation-delay: .37s;
+    }
+    @keyframes salto {
+        from {
+            transform: scaleX(1.25);
+        }
+        to{
+            transform: 
+            translateY(-50px) scaleX(1);
+        }
+    }
+</style>
+
+<!-- Cart Start -->
+<div class="container-fluid">
+    <div class="row px-xl-5">
+    	{% if cart %}
+	        <div class="col-lg-8 table-responsive mb-5" id="addLoad">
+	            <table class="table table-light table-borderless table-hover text-center mb-0" id="datatablet">
+	                <thead class="thead-dark">
+	                    <tr>
+	                        <th>Product</th>
+	                        <th>Precio</th>
+	                        <th>Trans.</th>
+	                        <th>Cantidad</th>
+	                        <th>Total</th>
+	                        <th>Eliminar</th>
+	                    </tr>
+	                </thead>
+	                <tbody class="align-middle">
+	                	{% for i in cart %}
+		                    <tr>
+		                        <td class="align-middle"><img src="{{i.img}}" alt="" style="width: 50px;">{{i.product}}</td>
+		                        <td class="align-middle">$<span id="price{{i.pk}}">{{i.price}}</span></td>
+		                        <td class="align-middle">$<span id="shipping_price{{i.pk}}">{{i.shipping_price}}</span></td>
+		                        <td class="align-middle">
+		                            <div class="input-group quantity mx-auto" style="width: 100px;">
+		                                <div class="input-group-btn">
+		                                    <button class="btn btn-sm btn-primary btn-minus add_cart_quanty" id="{{i.pk}}">
+		                                    <i class="fa fa-minus"></i>
+		                                    </button>
+		                                </div>
+		                                <input type="text" disabled class="form-control form-control-sm bg-secondary border-0 text-center quantity_product{{i.pk}}" value="{{i.quanty}}">
+		                                <div class="input-group-btn">
+		                                    <button class="btn btn-sm btn-primary btn-plus add_cart_quanty" id="{{i.pk}}">
+		                                        <i class="fa fa-plus"></i>
+		                                    </button>
+		                                </div>
+		                            </div>
+		                        </td>
+		                        <td class="align-middle">$<span id="total{{i.pk}}">{{i.total}}</span></td>
+		                        <td class="align-middle"><button class="btn btn-sm btn-danger" onclick="$(this).closest('tr').remove();remove_product('{{i.pk}}');Calculator();"><i class="fa fa-times"></i></button></td>
+		                    </tr>
+	                    {% endfor %}
+	                </tbody>
+	            </table>
+	        </div>
+	        <div class="col-lg-4">
+	            <form class="mb-30" action="">
+	                <div class="input-group">
+	                    <input type="text" class="form-control border-0 p-4" placeholder="Código Cupón">
+	                    <div class="input-group-append">
+	                        <button class="btn btn-primary">Aplicar Cupón</button>
+	                    </div>
+	                </div>
+	            </form>
+	            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Resumen de la compra</span></h5>
+	            <div class="bg-light p-30 mb-5">
+	                <div class="border-bottom pb-2">
+	                    <div class="d-flex justify-content-between mb-3">
+	                        <h6>Subtotal</h6>
+	                        <h6>$<span id="subtotal_order">{{subtotal}}</span></h6>
+	                    </div>
+	                    <div class="d-flex justify-content-between">
+	                        <h6 class="font-weight-medium">Transporte</h6>
+	                        <h6 class="font-weight-medium">$<span id="shipping">{{shipping}}</span></h6>
+	                    </div>
+	                </div>
+	                <div class="pt-2">
+	                    <div class="d-flex justify-content-between mt-2">
+	                        <h5>Total</h5>
+	                        <h5>$<span id="total_order">{{total}}</span></h5>
+	                    </div>
+	                    <a href="{% url 'CheckOut' %}" class="btn btn-block btn-primary font-weight-bold my-3 py-3">Pasar por la caja</a>
+	                </div>
+	            </div>
+	        </div>
+	    {% else %}
+	    	<div class="mb-7">
+				<div class="alert alert--default alert--top">
+					<i class="fa fa-info-circle icon color-quandog"></i>
+					<h3>Tu carrito está vacío</h3>
+					<p>
+						Añade cursos a tu carrito y empieza a aprender con los mejores profesionales.
+					<a class="text-dark" href="{% url 'Categories' %}">Continuar comprando
+					<i class="to-right">→</i>
+					</a></p>
+				</div>
+			</div>
+	    {% endif %}
+    </div>
+</div>
+<!-- Cart End -->
+
+{% endblock %}
+{% block script %}
+	<script src="{% static 'jquery.tabletojson.min.js' %}"></script>
+	<script>
+
+		function tableToJSON(table) {
+          var obj = {};
+          var row, rows = table.rows;
+          for (var i=0, iLen=rows.length; i<iLen; i++) {
+            row = rows[i];
+            obj[row.cells[0].textContent] = row.cells[1].textContent
+          }
+          return JSON.stringify(obj);
+        }
+
+
+
+
+		function remove_product(pk) {
+			$.ajax({
+				url:"{% url 'Remove_Product' %}",
+				data:{'pk_product':pk},
+				success:function(data){
+					$(".value_cart").text(data)
+					if(parseInt(data) <= 0){
+						location.reload(true)
+					}
+                }
+			})
+		}
+
+		function Calculator(){
+			let subtotal = 0
+			let shipping_price = 0
+			for (var i = 0; i < $("#datatablet").tableToJSON().length; i++) {
+				console.log($("#datatablet").tableToJSON()[i])
+				subtotal += parseFloat($("#datatablet").tableToJSON()[i]['Total'].replace('$',''))
+				shipping_price += parseFloat($("#datatablet").tableToJSON()[i]['Trans.'].replace('$',''))
+			}
+			$("#subtotal_order").text(subtotal.toFixed(1))
+			$("#shipping").text(shipping_price.toFixed(1))
+			$("#total_order").text((shipping_price + subtotal).toFixed(1))
+		}
+
+		$(document).ready(function(){
+
+            $(".add_cart_quanty").on('click', function(e){
+            	$("#addLoad").css("display","block");
+	            $("#addLoad").append(
+	                '<div class="cargando">'+
+	                    '<div class="pelotas"></div>'+
+	                    '<div class="pelotas"></div>'+
+	                    '<div class="pelotas"></div>'+
+	                    '<span class="texto-cargando">Actualizando Carrito</span>'+
+	                '</div>'
+	            )
+                e.preventDefault()
+                id = this.id
+                quanty = $(".quantity_product"+id).val()
+                $.ajax({
+                    url:"{% url 'Add_Cart' %}",
+                    data:{'pk_product':id,"quanty":quanty},
+                    success:function(data){
+                        $(".value_cart").text(data)
+						if(parseInt(data) <= 0){
+							location.reload(true)
+						}
+						let price = parseFloat($("#price"+id).text())
+						let quantity = parseFloat(quanty)
+						let total = price * quantity
+						$("#total"+id).text(total.toFixed(1))
+						$(".cargando").css("display",'None');
+						Calculator()
+                    }
+                })
+            })
+        })
+	</script>
+
+{% endblock %}
